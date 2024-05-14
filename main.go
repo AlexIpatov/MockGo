@@ -15,34 +15,21 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/config", getConfig).Methods("GET")
+	r.HandleFunc("/RemoteConfigIOSv2", getConfig).Methods("GET")
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
 
-	jsonData := getResponse("RemoteConfigIOSv2")
+	jsonMap := getResponse(r.URL.Path)
 
-	var model RemoteConfigIOSv2Model
-
-	err := json.Unmarshal([]byte(jsonData), &model)
-	if err != nil {
-		fmt.Println("Ошибка чтения JSON-данных:", err)
-	}
-	fmt.Println(model)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(model)
+	json.NewEncoder(w).Encode(jsonMap)
 }
 
-// func main() {
+func getResponse(fileName string) map[string]interface{} {
 
-// 	resp := getResponse("RemoteConfigIOSv2")
-// 	fmt.Println(string(resp))
-// }
-
-func getResponse(fileName string) string {
-
-	path := strings.Join([]string{"./Response/", fileName, ".json"}, "")
+	path := strings.Join([]string{"./Models", fileName, ".json"}, "")
 
 	content, error := os.ReadFile(path)
 
@@ -50,7 +37,8 @@ func getResponse(fileName string) string {
 		fmt.Print(error)
 	}
 
-	fmt.Print(string(content))
+	var jsonMap map[string]interface{}
+	json.Unmarshal([]byte(string(content)), &jsonMap)
 
-	return content
+	return jsonMap
 }
